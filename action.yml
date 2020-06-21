@@ -1,0 +1,9 @@
+name: 'Deploy to Heroku'
+description: 'Deploy a zip file to a heroku app'
+inputs:
+  
+outputs:
+
+runs:
+  using: 'node12'
+  main: 'index.js'
