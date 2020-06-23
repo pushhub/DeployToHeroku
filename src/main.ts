@@ -68,6 +68,10 @@ async function run(): Promise<void> {
       }
     };
 
+    if (github.context) {
+      console.log(github.context);
+    }
+
     const blobResponse = await axios.post(`https://api.heroku.com/apps/${args.app}/sources`, null, herokuConfig);
     const source_blob: SourceBlobResponse = blobResponse.data.source_blob;
 
@@ -75,7 +79,13 @@ async function run(): Promise<void> {
     await axios.put(source_blob.put_url, artifactData, {headers: { 'Content-Type': '' }});
     console.log('Artifact uploaded.'.cyan);
 
-    await axios.post(`https://api.heroku.com/apps/${args.app}/builds`, { source_blob: { url: source_blob.get_url } }, herokuConfig);
+    const buildData = {
+      source_blob: { 
+        url: source_blob.get_url,
+        version: `${github.context.ref} (${github.context.sha}) triggered by ${github.context.actor}`
+      }
+    }
+    await axios.post(`https://api.heroku.com/apps/${args.app}/builds`, buildData, herokuConfig);
     console.log('Success!'.green);
 
   } catch (error) {
