@@ -95,7 +95,7 @@ function aquireArguments(): Arguments {
   if (process.argv.length != 4) {
     // Assume we are running on Github.
     return {
-      artifactPath: core.getInput('artifact-path'),
+      artifactPath: core.getInput('artifact'),
       token: core.getInput('token'),
       app: determineAppName(core.getInput('environments'))
     };
