@@ -68,10 +68,6 @@ async function run(): Promise<void> {
       }
     };
 
-    if (github.context) {
-      console.log(github.context);
-    }
-
     const blobResponse = await axios.post(`https://api.heroku.com/apps/${args.app}/sources`, null, herokuConfig);
     const source_blob: SourceBlobResponse = blobResponse.data.source_blob;
 

@@ -3605,9 +3605,6 @@ function run() {
                     "Authorization": `Bearer ${args.token}`
                 }
             };
-            if (github.context) {
-                console.log(github.context);
-            }
             const blobResponse = yield axios_1.default.post(`https://api.heroku.com/apps/${args.app}/sources`, null, herokuConfig);
             const source_blob = blobResponse.data.source_blob;
             const artifactData = fs_1.default.readFileSync(args.artifactPath);
