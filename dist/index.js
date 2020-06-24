@@ -3556,6 +3556,57 @@ const github = __importStar(__webpack_require__(469));
 const axios_1 = __importDefault(__webpack_require__(53));
 const fs_1 = __importDefault(__webpack_require__(747));
 __webpack_require__(377);
+function parseEnvironments(str) {
+    let errorCount = 0;
+    const l = [];
+    const environments = str.split('\n').filter(x => x != '');
+    for (const line of environments) {
+        const parts = line.split('->');
+        if (parts.length != 2) {
+            errorCount += 1;
+            console.log(`${'invalid syntax:'.red} line contains too many arrow (\`->\`) separators.`);
+            continue;
+        }
+        const lhs = parts[0].trim();
+        const rhs = parts[1].trim();
+        if (!(lhs.startsWith('/') && lhs.endsWith('/'))) {
+            errorCount += 1;
+            console.log(`${'invalid syntax:'.red} regex does not start and end with a forward slash (\`/\`).`);
+            continue;
+        }
+        if (rhs.lastIndexOf(' ') !== -1) {
+            errorCount += 1;
+            console.log(`${'invalid syntax:'.red} app name cannot contain a space`);
+            continue;
+        }
+        const regexStr = lhs.slice(1, lhs.length - 1);
+        try {
+            const regex = new RegExp(regexStr);
+            l.push({ regex: regex, app: rhs });
+        }
+        catch (error) {
+            console.log(`${'error:'.red} ${error.message}`);
+            errorCount += 1;
+            continue;
+        }
+    }
+    if (errorCount > 0) {
+        process.exit(-2);
+    }
+    return l;
+}
+function determineAppName(str) {
+    const branch = github.context.ref;
+    const environments = parseEnvironments(str);
+    for (const m of environments) {
+        console.log(m.regex);
+        if (branch.match(m.regex)) {
+            return m.app;
+        }
+    }
+    console.log(`${'warning:'.yellow} ${branch} was not matched against any apps. Did not trigger a deployment.`);
+    process.exit(0);
+}
 function readArgument(label) {
     for (const value of process.argv) {
         const parts = value.split("=");
@@ -3573,7 +3624,7 @@ function aquireArguments() {
         return {
             artifactPath: core.getInput('artifact-path'),
             token: core.getInput('token'),
-            app: core.getInput('app')
+            app: determineAppName(core.getInput('environments'))
         };
     }
     const app = readArgument("--app");
@@ -3616,6 +3667,7 @@ function run() {
                     version: `${github.context.ref} (${github.context.sha}) triggered by ${github.context.actor}`
                 }
             };
+            console.log(`version: ${buildData.source_blob.version.magenta}`);
             yield axios_1.default.post(`https://api.heroku.com/apps/${args.app}/builds`, buildData, herokuConfig);
             console.log('Success!'.green);
         }

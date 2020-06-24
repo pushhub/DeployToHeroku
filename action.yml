@@ -1,15 +1,20 @@
 name: 'Deploy to Heroku'
 description: 'Deploy a zip file to a Heroku app'
 inputs:
-  artifact-path:
-    description: 'The path to the artifact to deploy.'
-    required: true
-  app:
-    description: 'The name of the Heroku app'
-    required: true
   token:
     description: 'An oauth api token from Heroku with permission to deploy the app.'
     required: true
+  artifact:
+    description: 'The path to the artifact to deploy.'
+    required: true
+  environments:
+    description: |
+      A list of pairs of branch regex expressions and app names. The first regex 
+      expression that matches the current branch ref triggers a deployment to the 
+      given app name. Each line denotes a new element in the list. The format of
+      each line is `/<regex to match branch>/ -> <app name>`. Note how the regex
+      **must** be surronded with forward slashes.
+    required: false
 runs:
   using: 'node12'
   main: 'dist/index.js'
